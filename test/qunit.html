@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>QUnit Runner</title>
+<link rel="stylesheet" href="qunit.css">
+</head>
+<body>
+
+<div id="qunit"></div>
+<div id="qunit-fixture"></div>
+
+<script src="jquery.js"></script>
+<script src="qunit.js"></script>
+<script src="pavlov.js"></script>
+<script>
+  pavlov.extendAssertions({
+    toEqual: function (actual, expected, message) {
+      pavlov.adapter.assert(actual === expected, message);
+    },
+    toBe: function (actual, expected, message) {
+      pavlov.adapter.assert(actual === expected, message);
+    }
+  });
+</script>
+
+<!-- Sources -->
+<script src="../src/observable.js"></script>
+
+ <!-- Test-->
+<script src="simple/tests.js"></script>
+<script src="knockout/subscribableBehaviors.js"></script>
+</body>
+</html>
