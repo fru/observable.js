@@ -1,0 +1,13 @@
+{
+  "name": "observable.js",
+  "version": "0.1.0",
+  "devDependencies": {
+    "grunt": "~0.4.4",
+    "grunt-coveralls": "~0.3.0",
+    "grunt-croc-qunit": "~0.3.0",
+    "phantomjs": "~1.9.7-1",
+    "jscoverage": "~0.3.8",
+    "grunt-qunit-cov": "~0.3.6"
+  },
+  "dependencies": {}
+}
