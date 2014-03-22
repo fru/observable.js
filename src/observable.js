@@ -103,18 +103,61 @@ function Subscribable(options){
 
 function Observable(options){
 
+  function self(){
+    if(arguments.length > 0){
+      if(typeof self.setter)throw "This observable can't be set.";
+    }else{
 
-  var value;
-  if()
-  //read property is function
-  //typeof options === "function" 
-  //otherwise default getter and setter
-  
-  var setter = options.setter;
-  
-  this._lastvalue = null;
-  this.accessor = 
+    }
+  };
 
+
+  
+
+  function result(){
+    if(arguments.length > 0){
+      
+      try{
+        _hasvalue = false;
+        return setter(arguments[0]);
+      }finally{
+        //beforeChange
+        result.notifySubscribers();
+      }
+    }
+    if(_hasvalue)return _lastvalue;
+    result.evalute();
+  };
+
+  /**
+   * Normalize options
+   */
+
+  if(typeof options === "function" )options.read = options;
+
+  if(options && typeof options.read === "function"){
+    for(var i in options)self[i] = options[i];
+    if(typeof options.write !== "function")options.write = null;
+  }else else{
+    self.value = options;
+    self.read = function(){return self.value;};
+    self.write = function(param){self.value = param;};
+    options = {read: read};
+  }
+
+
+  //set cached false just before write
+
+
+
+  /**
+   * Inheritance
+   */
+
+  Subscribable.call(this, options);
+  this.copyProperties(self);
+
+  this.accessor = self;
 }
 
 
@@ -146,10 +189,12 @@ function buildCheckType(type, properties){
 }
 
 /**
- * Fix the prototype hirarchy and define a type checking functions
+ * Prototype hirarchy and static functions
  */
 Subscribable.fn = Subscribable.prototype = {};
 Subscribable.isSubscribable = buildCheckType(Subscribable);
+
+Observable.fn = Observable.prototype = new Subscribable();
 
 
 
@@ -173,7 +218,7 @@ function buildObservable(options){
   // add extend shim to qunit.html
   // change for equal object except when equalityComparer === func && return true
   // 
-  // result.notifySubscribers resolved for every call
+  // result.notifySubscribers (can be set) resolved for every call
   // 
   //  ko.subscribable.fn or ko.observable.fn musst be inherited 
   //  
@@ -198,6 +243,7 @@ function buildObservable(options){
   };
   
   var _lastvalue, _hasvalue, _detected = [];
+  
   function result(){
     if(arguments.length > 0){
       if(!setter)throw "This observable can't be set.";
@@ -212,6 +258,9 @@ function buildObservable(options){
     if(_hasvalue)return _lastvalue;
     result.evalute();
   };
+
+
+
   result.evalute = function(){
     if(owner === true)owner = this;
     addDependency(result);
