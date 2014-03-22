@@ -146,7 +146,7 @@
 
     function self(){
       if(arguments.length > 0) {
-        self.setter(arguments[0]);
+        self.setter(arguments[0], true, arguments);
         return this;
       }else{
         return self.getter();
@@ -162,15 +162,14 @@
       self.notifySubscribers(self.value, "beforeChange");
     };
 
-    self.setter = function(value, dontWrite){
-      self.cached = false;
+    self.setter = function(value, write, args){
       var compare = self.equalityComparer;
       if(self.notify === 'always' || !compare || !compare(value, self.value)){
         try{
           self.valueWillMutate();
-          if(!dontWrite && !self.write)throw "This observable can't be set.";
+          if(write && !self.write)throw "This observable can't be set.";
           self.value = value;
-          if(!dontWrite)self.write.call(self.getContext(),value); 
+          if(write)self.write.apply(self.getContext(), args || value); 
         }finally{
           self.valueHasMutated();
         }
@@ -189,7 +188,7 @@
 
     self.peek = function(){
       var value = recordExecution(self.read, self.getContext(), self);
-      self.setter(value, true);
+      self.setter(value);
       return value;
     };
 
