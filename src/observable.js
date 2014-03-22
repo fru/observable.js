@@ -5,29 +5,22 @@
    * Subscribable Objects implement the publish-subscribe pattern.
    * @constructor 
    */
-  function Subscribable(options){
+  function Subscribable(){
 
     /**
      * Subscribable can only be called as a constructor.
      */
-    if (!this instanceof Subscribable)return new Subscribable(options);
+    if (!this instanceof Subscribable)return new Subscribable();
 
     /**
-     * options.read contains a function which will be evaluated when 
-     * subscribers need to be notified. The resulting value is passed 
-     * to the the subscribers.
-     * @type {Function}
-     */
-    var getter = (options||{}).read;
-    if(typeof getter !== "function")getter = null;
-
-    /**
-     * This object contains the subscribers that were registered with 
-     * this object. The event names server as keys here for values which 
-     * are arrays containg the subscribers registerd for that event.
+     * This gets the subscribers that were registered with this object. 
+     * The event names server as keys here for values which are arrays 
+     * containg the subscribers registerd for that event.
      * @type {Object}
      */
-    var _dependencies = {}, 
+    self.dependencies = function(){
+      return this._dependencies || (this._dependencies = {});
+    }
 
     /**
      * The default event indicates that the value has changed.
@@ -48,10 +41,9 @@
       if(this.hockNotifySubscribers){
         this.hockNotifySubscribers(event === defaultEvent, value, event);
       }
-      var dependencies = _dependencies[event];
-      if(!dependencies)return;
+      var dependencies = this.dependencies()[event];
       try{
-        if(getter)value = getter();
+        if(typeof this.read === "function")value = this.read();
       }finally{
         for(var i = 0; i < dependencies.length; i++){
           if(dependencies[i].disposed){
@@ -75,8 +67,8 @@
     this.subscribe = function(cb, context, event){
       event = event || defaultEvent;
       if(typeof cb !== "function")throw "First parameter musst be a function.";
-      var dependency = {cb: cb, context: context};   
-      (_dependencies[event] || (_dependencies[event] = [])).push(dependency);
+      var dependency = {cb: cb, context: context};
+      (this.dependencies()[event] || (this.dependencies()[event] = [])).push(dependency);
       function dispose(){ dependency.disposed = true; };
       return { dispose: dispose };
     };
@@ -100,9 +92,9 @@
      * @return {Integer} Nr. of subscriptions on this object
      */
     this.getSubscriptionsCount = function(event){
-      var count = 0;
-      if(event)return (_dependencies[event]||[]).length;
-      for(var i in _dependencies)count += _dependencies[i].length;
+      var count = 0, dependencies = this.dependencies();
+      if(event)return (dependencies[event]||[]).length;
+      for(var i in dependencies)count += dependencies[i].length;
       return count;
     }
   }
@@ -127,7 +119,7 @@
 
 
 
-  function Observable(options){
+  function Observable(){
 
     function self(){
       if(arguments.length > 0) {
@@ -172,25 +164,34 @@
 
 
     /**
-     * Normalize options
+     * Normalize and extend with options
      */
-     /*
-    if(typeof options === "function" ){
-      self.read = options;
-    }else if(!options || typeof options.read !== "function"){
+    if(!options || typeof options.read !== "function"){
       self.value = options;
       self.read = function(){return self.value;};
       self.write = function(param){self.value = param;};
     }else{
-      for(var i in options)if(options.hasOwnProperty(i))self[i] = options[i];
-      if(typeof options.write !== "function")options.write = null;
+      for(var i in options){
+        if(options.hasOwnProperty(i))self[i] = options[i];
+      }
+    }
+
+    
+
+     /*
+    if(typeof options === "function" ){
+      self.read = options;
+    }else 
+      
+    }else{
+      
     }
 
     /**
      * Inheritance
      */
 
-    Subscribable.call(this, options);
+    Subscribable.call(this);
     this.copyProperties(self);
 
     this.accessor = self;
@@ -224,9 +225,12 @@
     subscribable: Subscribable,
     isSubscribable: buildCheckType(Subscribable),
     observable: function(initial){
-      var result = 
-      self.value = initial;
-      self.read = function(){return self.value;};
+      var result = {
+        value: initial,
+        read: function(){return self.value;}
+      }
+      self.value = ;
+      self.read = ;
       self.write = function(param){self.value = param;};
 
     }
