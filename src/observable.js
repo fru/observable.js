@@ -212,25 +212,23 @@
     return self;
   }
 
-  function DependentObservable(options, owner){
-
-    if(!options || typeof (options.read || options) !== "function"){
-      throw "Function has to be passed."
-    }
+  function DependentObservable(evaluator, owner, options){
 
     if (!(this instanceof DependentObservable)){
-      return new DependentObservable(options, owner);
+      return new DependentObservable(evaluator, options, owner);
+    }
+
+    if(typeof evaluator !== "function"){
+      options = evaluator || {};
+      evaluator = options.read;
+      if(typeof evaluator !== "function")throw "Function has to be passed.";
     }
 
     var self = Observable.call(this);
 
-    if(options.read){
-      self.extend(options);
-      if(!self.owner)self.owner = owner;
-    }else{
-      self.read = options;
-      self.owner = owner;
-    }
+    if(options)self.extend(options);
+    if(!self.owner)self.owner = owner;
+    self.read = evaluator;
 
     if(!self.deferEvaluation)self.peek();
 
