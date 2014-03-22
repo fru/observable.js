@@ -42,7 +42,7 @@
       }
       var dependencies = this.getDependencies()[event] || [];
       try{
-        if(typeof this.read === "function")value = this.read();
+        if(this.getter)value = this.getter();
       }finally{
         for(var i = 0; i < dependencies.length; i++){
           if(dependencies[i].disposed){
@@ -84,6 +84,16 @@
       target._clonedFrom = this;
       return target;
     };
+
+    /**
+     * Extend via properties 
+     * @param  {[type]} properties [description]
+     * @return {[type]}            [description]
+     */
+    this.extend = function(properties){
+      for(var i in properties)this[i] = properties[i];
+      return this;
+    }
 
     /**
      * Returns the number of subscriptions for the specific event name.
@@ -129,15 +139,32 @@
       }
     };
 
+    self.valueHasMutated = function(){
+      self.notifySubscribers(self.value);
+    };
+
+    self.valueWillMutate = function(){
+      self.notifySubscribers(self.value, "beforeChange");
+    }
+
     self.setter = function(value){
       if(typeof self.write !== "function")throw "This observable can't be set.";
       self.cached = false;
-      try{
-        self.write(value);
-      }finally{
-        self.notifySubscribers();
+      var compare = self.equalityComparer;
+      if(self.notify === 'always' || !compare || !compare(value, self.value)){
+        try{
+          self.valueWillMutate();
+          self.write(value);
+        }finally{
+          self.valueHasMutated();
+        }
       }
     }
+
+    self.equalityComparer = function(newvalue, oldvalue){
+      var isObject = Object.prototype.toString.call(newvalue) === "[object Object]";
+      return !isObject && newvalue === oldvalue;
+    };
 
     self.getter = function(){
       var context = self.owner === true ? this : self.owner
@@ -218,8 +245,6 @@
       type   = options.type;*/ // computed, array on result
 
   //result.writable when !!setter
-  //result.valueHasMutated() -> notifySubscribers event: change
-  //result.valueWillMutate() -> notifySubscribers event: beforeChange
   
   // dont chnage when newValue === oldValue
   // see notify 'always' propertie on observable 

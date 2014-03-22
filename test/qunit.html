@@ -16,7 +16,8 @@
 <script>
   pavlov.extendAssertions({
     toEqual: function (actual, expected, message) {
-      pavlov.adapter.assert(actual === expected, message);
+      deepEqual(actual, expected, message);
+      //pavlov.adapter.assert(actual === expected, message);
     },
     toBe: function (actual, expected, message) {
       pavlov.adapter.assert(actual === expected, message);
