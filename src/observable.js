@@ -127,10 +127,7 @@
     }finally{
       stack.pop();
       observable.recording = false;
-      for(var j = 0; j < dependencyCount(observable); j++){
-        observable._subs[j].dispose();
-      }
-      observable._subs = [];
+      diposeAllDepencies(observable);
       for(var i = 0; i < result.length; i++){
         observable._subs.push(result[i].subscribe(function(){
           observable.peek();
@@ -140,6 +137,12 @@
   }
   function dependencyCount(observable){
     return (observable._subs||[]).length;
+  }
+  function diposeAllDepencies(observable){
+    for(var i = 0; i < dependencyCount(observable); i++){
+      observable._subs[i].dispose();
+    }
+    observable._subs = [];
   }
 
 
@@ -189,6 +192,13 @@
     };
 
     self.peek = function(){
+      //TODO is this also needed at start of getter?
+      if(self.disposeWhen && self.disposeWhen()){
+        self.disposed = true;
+        diposeAllDepencies(self);
+      }
+      if(self.disposed)return;
+
       var value = recordExecution(self.read, self.getContext(), self);
       self.setter(value);
       return value;
@@ -230,6 +240,7 @@
     var self = Observable.call(this);
 
     if(options)self.extend(options);
+
     if(!self.owner)self.owner = owner;
     self.read = evaluator;
 
