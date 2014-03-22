@@ -1,5 +1,5 @@
 
-(function(result){
+(function(global){
 
   /**
    * Subscribable Objects implement the publish-subscribe pattern.
@@ -18,7 +18,7 @@
      * containg the subscribers registerd for that event.
      * @type {Object}
      */
-    self.dependencies = function(){
+    this.getDependencies = function(){
       return this._dependencies || (this._dependencies = {});
     }
 
@@ -26,22 +26,21 @@
      * The default event indicates that the value has changed.
      * @type {String}
      */
-    defaultEvent = "change";
+    var defaultEvent = "change";
 
     /**
      * All subscribers that were registered with the specified event 
      * parameter will be called. When a custome notify function is 
-     * needed hockNotifySubscribers can be defined to execute object 
-     * specific logic. 
+     * needed hockNotify can be defined to execute object specific logic. 
      * @param  {[type]} value - if defined replaced by options.read
      * @param  {[type]} event - when no specified the default is used
      */
     this.notifySubscribers = function(value, event){
       event = event || defaultEvent;
-      if(this.hockNotifySubscribers){
-        this.hockNotifySubscribers(event === defaultEvent, value, event);
+      if(this.hockNotify){
+        this.hockNotify(event === defaultEvent, value, event);
       }
-      var dependencies = this.dependencies()[event];
+      var dependencies = this.getDependencies()[event] || [];
       try{
         if(typeof this.read === "function")value = this.read();
       }finally{
@@ -68,7 +67,7 @@
       event = event || defaultEvent;
       if(typeof cb !== "function")throw "First parameter musst be a function.";
       var dependency = {cb: cb, context: context};
-      (this.dependencies()[event] || (this.dependencies()[event] = [])).push(dependency);
+      (this.getDependencies()[event] || (this.getDependencies()[event] = [])).push(dependency);
       function dispose(){ dependency.disposed = true; };
       return { dispose: dispose };
     };
@@ -92,7 +91,7 @@
      * @return {Integer} Nr. of subscriptions on this object
      */
     this.getSubscriptionsCount = function(event){
-      var count = 0, dependencies = this.dependencies();
+      var count = 0, dependencies = this.getDependencies();
       if(event)return (dependencies[event]||[]).length;
       for(var i in dependencies)count += dependencies[i].length;
       return count;
@@ -146,17 +145,12 @@
       recordDependency(self);
       var dependencies = self.dependencies = [];
       self.cached = true;
-      return self.value = recordExecution(self.read, owner, dependencies, self);
+      return self.value = recordExecution(self.read, context, dependencies, self);
     }
 
-    self.reevalute = function(){
-      self.cached = false;
-      return this.getter();
-    }
-
-    self.hockNotifySubscribers = function(isDefaultEvent){
+    self.hockNotify = function(isDefaultEvent){
       var d = self.dependencies;
-      if(isDefaultEvent)for(var i in d)d[i].reevalute();
+      if(isDefaultEvent)for(var i in d)d[i].cached = false;
     }
 
     /**
@@ -178,19 +172,17 @@
    */
   function buildCheckType(type, typename, check){
     return function(any){
-      if(!any || any["_type"] !== typename )any = null;
+      if(typename && (!any || any["_type"] !== typename))any = null;
       if(check && (!any || !check(any)))any = null;
       return !!any && ( any instanceof type || any._clonedFrom instanceof type );
     };
   }
 
-  /**
-   * Prototype hirarchy
-   */
-  Subscribable.fn = Subscribable.prototype = {};
-  Observable.fn = Observable.prototype = new Subscribable();
 
-  result({
+  /**
+   * Return a result object 
+   */
+  global.ko = {
     subscribable: Subscribable,
     isSubscribable: buildCheckType(Subscribable),
     observable: function(initial){
@@ -200,12 +192,18 @@
       self.write = function(param){self.value = param;};
       return self;
     },
-    isObservable: buildCheckType(Observable)
-  });
+    isObservable: buildCheckType(Observable),
+    isWriteableObservable: buildCheckType(Observable, null, function(self){return !!self.write;})
+  };
 
-})(function(result){
-  window.ko = result;
-});
+
+  /**
+   * Prototype hirarchy
+   */
+  Subscribable.fn = Subscribable.prototype = {};
+  global.ko.observable.fn = Observable.prototype = new Subscribable();
+
+})(window);
 
 
 

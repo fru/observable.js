@@ -15,6 +15,7 @@ describe('Observable', function() {
     it('Should be able to write values to it', function () {
         var instance = new ko.observable();
         instance(123);
+        assert(instance()).toEqual(123);
     });
 
     it('Should be able to write to multiple observable properties on a model object using chaining syntax', function() {
@@ -263,43 +264,24 @@ describe('Observable', function() {
         assert(interceptedNotifications[1].value).toEqual(456);
     });
 
-    it('Should inherit any properties defined on ko.subscribable.fn or ko.observable.fn', function() {
-        this.after(function() {
-            delete ko.subscribable.fn.customProp;       // Will be able to reach this
-            delete ko.subscribable.fn.customFunc;       // Overridden on ko.observable.fn
-            delete ko.observable.fn.customFunc;         // Will be able to reach this
-        });
-
-        ko.subscribable.fn.customProp = 'subscribable value';
-        ko.subscribable.fn.customFunc = function() { throw new Error('Shouldn\'t be reachable') };
-        ko.observable.fn.customFunc = function() { return this(); };
-
-        var instance = ko.observable(123);
-        assert(instance.customProp).toEqual('subscribable value');
-        assert(instance.customFunc()).toEqual(123);
-    });
-
-    it('Should have access to functions added to "fn" on existing instances on supported browsers', function () {
-        // On unsupported browsers, there's nothing to test
-        if (!jasmine.browserSupportsProtoAssignment) {
-            return;
-        }
-
-        this.after(function() {
+    describe('Extending prototypes', function() {
+        after(function() {
+            delete ko.subscribable.fn.customProp;
+            delete ko.subscribable.fn.customFunc; 
+            delete ko.observable.fn.customFunc;   
             delete ko.subscribable.fn.customFunction1;
             delete ko.observable.fn.customFunction2;
         });
 
-        var observable = ko.observable();
+        it('Should inherit any properties defined on ko.subscribable.fn or ko.observable.fn', function() {
+            ko.subscribable.fn.customProp = 'subscribable value';
+            ko.subscribable.fn.customFunc = function() { throw new Error('Shouldn\'t be reachable') };
+            ko.observable.fn.customFunc = function() { return this(); };
 
-        var customFunction1 = function () {};
-        var customFunction2 = function () {};
-
-        ko.subscribable.fn.customFunction1 = customFunction1;
-        ko.observable.fn.customFunction2 = customFunction2;
-
-        assert(observable.customFunction1).toBe(customFunction1);
-        assert(observable.customFunction2).toBe(customFunction2);
+            var instance = ko.observable(123);
+            assert(instance.customProp).toEqual('subscribable value');
+            assert(instance.customFunc()).toEqual(123);
+        });
     });
 });
 
