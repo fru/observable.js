@@ -41,13 +41,17 @@
       try{
         if(this.getter)value = this.getter();
       }finally{
-        for(var i = 0; i < dependencies.length; i++){
-          if(dependencies[i].disposed){
-            dependencies.splice(i, 1);
-            i--;
-          }else{
+        var length = dependencies.length;
+        for(var i = 0; i < length; i++){
+          if(!dependencies[i].disposed){
             dependencies[i].cb.call(dependencies[i].context, value);
           }
+        }
+        for(i = 0; i < length; i++){
+          if(dependencies[i].disposed){
+            dependencies.splice(i, 1);
+            i--; length--;
+          } 
         }
       }
     };
@@ -113,6 +117,7 @@
     if(last.observable !== dependency)last.push(dependency);
   }
   function recordExecution(func, context, observable){
+    if(!func)return;
     if(observable.recording)return observable.value;
     var result = [];
     result.observable = observable;
@@ -123,10 +128,10 @@
     }finally{
       stack.pop();
       observable.recording = false;
-      if(!observable._subs)observable._subs = [];
-      for(var j in observable._subs){
+      for(var j = 0; j < (observable._subs||[]).length; j++){
         observable._subs[j].dispose();
       }
+      observable._subs = [];
       for(var i = 0; i < result.length; i++){
         observable._subs.push(result[i].subscribe(function(){
           observable.peek();
@@ -150,20 +155,22 @@
 
     self.valueHasMutated = function(){
       self.notifySubscribers(self.value);
+
     };
 
     self.valueWillMutate = function(){
       self.notifySubscribers(self.value, "beforeChange");
     };
 
-    self.setter = function(value){
-      if(typeof self.write !== "function")throw "This observable can't be set.";
+    self.setter = function(value, dontWrite){
       self.cached = false;
       var compare = self.equalityComparer;
       if(self.notify === 'always' || !compare || !compare(value, self.value)){
         try{
           self.valueWillMutate();
-          self.write.call(self.getContext(),value);
+          if(!dontWrite && !self.write)throw "This observable can't be set.";
+          self.value = value;
+          if(!dontWrite)self.write.call(self.getContext(),value); 
         }finally{
           self.valueHasMutated();
         }
@@ -176,15 +183,14 @@
     };
 
     self.getter = function(){
-      if(self.cached)return self.value;
       recordDependency(self);
-      return self.peek();
+      return self.value;
     };
 
     self.peek = function(){
-      self.cached = true;
-      self.value = recordExecution(self.read, self.getContext(), self);
-      return self.value;
+      var value = recordExecution(self.read, self.getContext(), self);
+      self.setter(value, true);
+      return value;
     };
 
     self.getContext = function(){
@@ -219,6 +225,8 @@
       self.owner = owner;
     }
 
+    if(!self.deferEvaluation)self.peek();
+
     return self;
   }
 
@@ -248,8 +256,8 @@
     observable: function(initial){
       var self = new Observable();
       self.value = initial;
-      self.read  = function(){return self.value;};
-      self.write = function(param){self.value = param;};
+      //self.read  = function(){return self.value;};
+      self.write = function(){};
       return self;
     },
     dependentObservable: DependentObservable,
