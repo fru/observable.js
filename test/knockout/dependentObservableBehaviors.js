@@ -372,7 +372,9 @@ describe('Dependent Observable', function() {
                 // or "Out of stack space" (IE) or "too much recursion" (Firefox) if recursion
                 // isn't prevented
                 observable(observable() + 1);
+                return observable();
             });
+        assert(computed()).toEqual(1);
     });
 
     it('Should not subscribe to observables accessed through change notifications of a computed', function() {
@@ -488,21 +490,28 @@ describe('Dependent Observable', function() {
         assert(all()).toEqual(depth+2);
     });
 
-    it('Should inherit any properties defined on ko.subscribable.fn or ko.computed.fn', function() {
-        this.after(function() {
+    describe('fn inheritance', function(){
+        after(function() {
             delete ko.subscribable.fn.customProp;       // Will be able to reach this
             delete ko.subscribable.fn.customFunc;       // Overridden on ko.computed.fn
             delete ko.computed.fn.customFunc;         // Will be able to reach this
         });
 
-        ko.subscribable.fn.customProp = 'subscribable value';
-        ko.subscribable.fn.customFunc = function() { throw new Error('Shouldn\'t be reachable') };
-        ko.computed.fn.customFunc = function() { return this(); };
+        it('Should inherit any properties defined on ko.subscribable.fn or ko.computed.fn', function() {
 
-        var instance = ko.computed(function() { return 123; });
-        assert(instance.customProp).toEqual('subscribable value');
-        assert(instance.customFunc()).toEqual(123);
+            ko.subscribable.fn.customProp = 'subscribable value';
+            ko.subscribable.fn.customFunc = function() { throw new Error('Shouldn\'t be reachable') };
+            ko.computed.fn.customFunc = function() { return this(); };
+
+            var instance = ko.computed(function() { return 123; });
+            assert(instance.customProp).toEqual('subscribable value');
+            assert(instance.customFunc()).toEqual(123);
+        });
     });
+
+    
+    /*
+        __proto__ nerver supported
 
     it('Should have access to functions added to "fn" on existing instances on supported browsers', function () {
         // On unsupported browsers, there's nothing to test
@@ -527,6 +536,7 @@ describe('Dependent Observable', function() {
         assert(computed.customFunction2).toBe(customFunction2);
     });
 
+    */
     it('Should not evaluate (or add dependencies) after it has been disposed', function () {
         var evaluateCount = 0,
             observable = ko.observable(0),

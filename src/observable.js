@@ -295,7 +295,7 @@
      */
     Subscribable.fn = Subscribable.prototype = {};
     global.ko.observable.fn = Observable.prototype = new Subscribable();
-    DependentObservable.prototype = new Observable().original; 
+    DependentObservable.fn = DependentObservable.prototype = new Observable().original; 
   }
 
 })(window);
