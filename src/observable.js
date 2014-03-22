@@ -58,7 +58,7 @@ function Subscribable(options){
 
   /**
    * Add a subscriber to this object. When notify is executed the 
-   * callback parameter is called with the here specified context.  
+   * callback parameter is called with the context specified here.  
    * @param  {Function} cb      - the subscription callback
    * @param  {Any}      context - if true replaced with the context that
    *                              subscribe is called with. 
@@ -80,50 +80,105 @@ function Subscribable(options){
    * a function this can't be done using just prototype.
    * @param  {Any} target - this target will become subscribable
    */
-  this.makeSubscribable = function(target){
+  this.copyProperties = function(target){
     for(var i in this)target[i] = this[i];
-    target.constructor = Subscribable;
+    target._clonedFrom = this;
     return target;
   };
 
   /**
-   * Returns the number of subscriptions for every event name.
-   * @return {Integer} # of subscriptions on this object
+   * Returns the number of subscriptions for the specific event name.
+   * @param {String} event - if falsy; all subscriptions are counted
+   * @return {Integer} Nr. of subscriptions on this object
    */
-  this.getSubscriptionsCount = function(){
+  this.getSubscriptionsCount = function(event){
     var count = 0;
+    if(event)return (_dependencies[event]||[]).length;
     for(var i in _dependencies)count += _dependencies[i].length;
     return count;
   }
 }
 
+
+
+function Observable(options){
+
+
+  var value;
+  if()
+  //read property is function
+  //typeof options === "function" 
+  //otherwise default getter and setter
+  
+  var setter = options.setter;
+  
+  this._lastvalue = null;
+  this.accessor = 
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
 /**
- * [isSubscribable description]
- * @param  {[type]}  possible [description]
- * @return {Boolean}          [description]
+ * Utility function that is used to build type checking functions. The resulting 
+ * function also checks for necessary properties and also returns true if the
+ * copyProperties function was used to instantiate this object.
+ * 
+ * @param  {Constructor} type to be checked against
+ * @return {Function}      
  */
-Subscribable.isSubscribable = function(possible){
-  if(!possible)return false;
-  return possible instanceof Subscribable || possible.constructor === Subscribable;
+function buildCheckType(type, properties){
+  return function(any){
+    if(properties){
+      for(var i in properties)if(!any || properties[i] !== any[i])any = null;
+    }
+    return !!any && ( any instanceof type || any._clonedFrom instanceof type );
+  };
 }
 
 /**
- * Can be used to extend all Subscribable objects.
+ * Fix the prototype hirarchy and define a type checking functions
  */
 Subscribable.fn = Subscribable.prototype = {};
+Subscribable.isSubscribable = buildCheckType(Subscribable);
 
 
 
 
-
-function observable(options){
+function buildObservable(options){
   var getter = options.read,
       setter = options.write,
       defer  = options.deferEvaluation ,
-      owner  = options.owner;
+      owner  = options.owner,
+      type   = options.type; // computed, array on result
   
   if(typeof setter !== "function")setter = null;
   if(typeof getter !== "function")throw "Parameter options.read musst be a function.";
+
+  //result.writable when !!setter
+  //result.valueHasMutated() -> notifySubscribers event: change
+  //result.valueWillMutate() -> notifySubscribers event: beforeChange
+  
+  // dont chnage when newValue === oldValue
+  // see notify 'always' propertie on observable 
+  // add extend shim to qunit.html
+  // change for equal object except when equalityComparer === func && return true
+  // 
+  // result.notifySubscribers resolved for every call
+  // 
+  //  ko.subscribable.fn or ko.observable.fn musst be inherited 
+  //  
+  //  chaning syntax on write calls
+  
   
   if(!observable._stack)observable._stack = [];
   function addDependency(value){
@@ -131,7 +186,9 @@ function observable(options){
     if(length < 1)return;
     observable._stack[length-1].push(value);
   };
+
   function findDependencies(func, context, result){
+    // dont start evaluating twice on the same element
     observable._stack.push(result);
     try{
       return func.apply(context);
@@ -148,6 +205,7 @@ function observable(options){
         _hasvalue = false;
         return setter(arguments[0]);
       }finally{
+        //beforeChange
         result.notifySubscribers();
       }
     }
@@ -167,10 +225,25 @@ function observable(options){
   return new Subscribable(options).makeSubscribable(result);
 }
 
+
+
+
+function observable(initial){
+
+
+}
+
+
+
+
 if(!window.ko){
 	window.ko = {
 		subscribable: Subscribable,
-		isSubscribable: Subscribable.isSubscribable
+		isSubscribable: Subscribable.isSubscribable,
+    observable: function(initial){
+
+
+    }
 	}
 }
 
