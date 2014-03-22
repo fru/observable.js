@@ -67,8 +67,8 @@ function Subscribable(options){
   this.subscribe = function(cb, context, event){
     event = event || defaultEvent;
     if(typeof cb !== "function")throw "First parameter musst be a function.";
-    var dependencie = {cb: cb, context: context};   
-    (_dependencies[event] || (_dependencies[event] = [])).push(dependencie);
+    var dependency = {cb: cb, context: context};   
+    (_dependencies[event] || (_dependencies[event] = [])).push(dependency);
     function dispose(){ dependencie.disposed = true; };
     return { dispose: dispose };
   };
@@ -100,34 +100,69 @@ function Subscribable(options){
 }
 
 
+var stack = [];
+function recordDependency(dependency){
+  var length = stack.length;
+  if(length > 0)stack[length-1].push(dependency);
+}
+function recordExecution(func, context, result, observable){
+  if(observable.recording)return observable.value;
+  observable.recording = true;
+  stack.push(result);
+  try{
+    return func.apply(context);
+  }finally{
+    stack.pop();
+    observable.recording = false;
+  }
+}
+
+
 
 function Observable(options){
 
   function self(){
-    if(arguments.length > 0){
-      if(typeof self.setter)throw "This observable can't be set.";
+    if(arguments.length > 0) {
+      self.setter(arguments[0]);
+      return this;
     }else{
-
+      return self.getter();
     }
   };
 
-
-  
-
-  function result(){
-    if(arguments.length > 0){
-      
-      try{
-        _hasvalue = false;
-        return setter(arguments[0]);
-      }finally{
-        //beforeChange
-        result.notifySubscribers();
-      }
+  self.setter = function(value){
+    if(typeof self.write !== "function")throw "This observable can't be set.";
+    self.cached = false;
+    try{
+      self.write(value);
+    }finally{
+      self.notifySubscribers();
     }
-    if(_hasvalue)return _lastvalue;
-    result.evalute();
-  };
+  }
+
+  self.getter = function(){
+    var context = self.owner === true ? this : self.owner
+    if(self.cached)return self.value;
+    recordDependency(self);
+    var dependencies = self.dependencies = [];
+    self.cached = true;
+    return self.value = recordExecution(self.read, owner, dependencies, self);
+  }
+
+  self.reevalute = function(){
+    self.cached = false;
+    return this.getter();
+  }
+
+  self.hockNotifySubscribers = function(isDefaultEvent){
+    var d = self.dependencies;
+    if(isDefaultEvent)for(var i in d)d[i].evalute();
+  }
+  return new Subscribable(options).makeSubscribable(result);
+
+  self.writable = !!self.write;
+
+
 
   /**
    * Normalize options
@@ -138,15 +173,12 @@ function Observable(options){
   if(options && typeof options.read === "function"){
     for(var i in options)self[i] = options[i];
     if(typeof options.write !== "function")options.write = null;
-  }else else{
+  }else{
     self.value = options;
     self.read = function(){return self.value;};
     self.write = function(param){self.value = param;};
     options = {read: read};
   }
-
-
-  //set cached false just before write
 
 
 
@@ -262,11 +294,7 @@ function buildObservable(options){
 
 
   result.evalute = function(){
-    if(owner === true)owner = this;
-    addDependency(result);
-    var dependencies = _detected = [];
-    _lastvalue = findDependencies(getter, owner, dependencies);
-    _hasvalue = true;
+    
   }
   result.hockNotifySubscribers = function(isDefaultEvent){
     if(isDefaultEvent)for(var i in _detected)_detected[i].evalute();
