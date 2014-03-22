@@ -251,7 +251,11 @@
     };
   }
 
+  /**
+   * Do nothing when knockout already exists!
+   */
   if(!global.ko){
+
     /**
      * Return a result object 
      */
