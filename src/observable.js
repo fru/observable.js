@@ -159,41 +159,11 @@
       if(isDefaultEvent)for(var i in d)d[i].reevalute();
     }
 
-    self.writable = !!self.write;
-
-
-
-    /**
-     * Normalize and extend with options
-     */
-    if(!options || typeof options.read !== "function"){
-      self.value = options;
-      self.read = function(){return self.value;};
-      self.write = function(param){self.value = param;};
-    }else{
-      for(var i in options){
-        if(options.hasOwnProperty(i))self[i] = options[i];
-      }
-    }
-
-    
-
-     /*
-    if(typeof options === "function" ){
-      self.read = options;
-    }else 
-      
-    }else{
-      
-    }
-
     /**
      * Inheritance
      */
 
-    Subscribable.call(this);
     this.copyProperties(self);
-
     this.accessor = self;
   }
 
@@ -206,11 +176,10 @@
    * @param  {Constructor} type to be checked against
    * @return {Function}      
    */
-  function buildCheckType(type, properties){
+  function buildCheckType(type, typename, check){
     return function(any){
-      if(properties){
-        for(var i in properties)if(!any || properties[i] !== any[i])any = null;
-      }
+      if(!any || any["_type"] !== typename )any = null;
+      if(check && (!any || !check(any)))any = null;
       return !!any && ( any instanceof type || any._clonedFrom instanceof type );
     };
   }
@@ -225,15 +194,13 @@
     subscribable: Subscribable,
     isSubscribable: buildCheckType(Subscribable),
     observable: function(initial){
-      var result = {
-        value: initial,
-        read: function(){return self.value;}
-      }
-      self.value = ;
-      self.read = ;
+      var self = new Observable().accessor;
+      self.value = initial;
+      self.read  = function(){return self.value;};
       self.write = function(param){self.value = param;};
-
-    }
+      return self;
+    },
+    isObservable: buildCheckType(Observable)
   });
 
 })(function(result){
