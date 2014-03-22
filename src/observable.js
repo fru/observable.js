@@ -117,8 +117,7 @@
     if(last.observable !== dependency)last.push(dependency);
   }
   function recordExecution(func, context, observable){
-    if(!func)return;
-    if(observable.recording)return observable.value;
+    if(observable.recording || !func)return observable.value;
     var result = [];
     result.observable = observable;
     observable.recording = true;
@@ -219,6 +218,7 @@
 
     if(options.read){
       self.extend(options);
+      if(!self.owner)self.owner = owner;
     }else{
       self.read = options;
       self.owner = owner;
@@ -255,7 +255,6 @@
     observable: function(initial){
       var self = new Observable();
       self.value = initial;
-      //self.read  = function(){return self.value;};
       self.write = function(){};
       return self;
     },
