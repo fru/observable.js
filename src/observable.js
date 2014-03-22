@@ -251,63 +251,32 @@
     };
   }
 
+  if(!global.ko){
+    /**
+     * Return a result object 
+     */
+    global.ko = {
+      subscribable: Subscribable,
+      isSubscribable: buildCheckType(Subscribable),
+      observable: function(initial){
+        var self = new Observable();
+        self.value = initial;
+        self.write = function(){};
+        return self;
+      },
+      dependentObservable: DependentObservable,
+      computed: DependentObservable,
+      isComputed: buildCheckType(DependentObservable),
+      isObservable: buildCheckType(Observable),
+      isWriteableObservable: buildCheckType(Observable, function(self){return !!self.write;})
+    };
 
-  /**
-   * Return a result object 
-   */
-  global.ko = {
-    subscribable: Subscribable,
-    isSubscribable: buildCheckType(Subscribable),
-    observable: function(initial){
-      var self = new Observable();
-      self.value = initial;
-      self.write = function(){};
-      return self;
-    },
-    dependentObservable: DependentObservable,
-    computed: DependentObservable,
-    isComputed: buildCheckType(DependentObservable),
-    isObservable: buildCheckType(Observable),
-    isWriteableObservable: buildCheckType(Observable, function(self){return !!self.write;})
-  };
-
-
-  /**
-   * Prototype hirarchy
-   */
-  Subscribable.fn = Subscribable.prototype = {};
-  global.ko.observable.fn = Observable.prototype = new Subscribable();
-  DependentObservable.prototype = new Observable().original; 
+    /**
+     * Prototype hirarchy
+     */
+    Subscribable.fn = Subscribable.prototype = {};
+    global.ko.observable.fn = Observable.prototype = new Subscribable();
+    DependentObservable.prototype = new Observable().original; 
+  }
 
 })(window);
-
-
-
-
-
-
-
-
-
-      /*defer  = options.deferEvaluation ,
-      owner  = options.owner,
-      type   = options.type;*/ // computed, array on result
-
-  //result.writable when !!setter
-  
-  // dont chnage when newValue === oldValue
-  // see notify 'always' propertie on observable 
-  // add extend shim to qunit.html
-  // change for equal object except when equalityComparer === func && return true
-  // 
-  // result.notifySubscribers (can be set) resolved for every call
-  // 
-  //  ko.subscribable.fn or ko.observable.fn musst be inherited 
-  //  
-  //  chaning syntax on write calls
-  
-  // beforeChange send event
-
-
-
-
