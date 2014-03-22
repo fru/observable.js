@@ -26,7 +26,7 @@
      * The default event indicates that the value has changed.
      * @type {String}
      */
-    var defaultEvent = "change";
+    this.defaultEvent = "change";
 
     /**
      * All subscribers that were registered with the specified event 
@@ -36,7 +36,7 @@
      * @param  {[type]} event - when no specified the default is used
      */
     this.notifySubscribers = function(value, event){
-      event = event || defaultEvent;
+      event = event || this.defaultEvent;
       var dependencies = this.getDependencies()[event] || [];
       try{
         if(this.getter)value = this.getter();
@@ -65,7 +65,7 @@
      * @param  {String}   event   - when no specified the default is used
      */
     this.subscribe = function(cb, context, event){
-      event = event || defaultEvent;
+      event = event || this.defaultEvent;
       if(typeof cb !== "function")throw "First parameter musst be a function.";
       var dependency = {cb: cb, context: context};
       (this.getDependencies()[event] || (this.getDependencies()[event] = [])).push(dependency);
@@ -194,6 +194,14 @@
     self.getContext = function(){
       return self.owner === undefined ? global : self.owner;
     };
+
+    self.getDependenciesCount = function(){
+      return self.getSubscriptionsCount(self.defaultEvent);
+    }
+
+    self.isActive = function(){
+      return self.getDependenciesCount() > 0;
+    }
 
     /**
      * Inheritance
