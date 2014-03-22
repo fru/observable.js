@@ -112,17 +112,35 @@
   var stack = [];
   function recordDependency(dependency){
     var length = stack.length;
-    if(length > 0)stack[length-1].push(dependency);
+    var last = length > 0 ? stack[length-1] : [];
+    if(last && last.observable)console.log(">"+last.observable.value);
+    if(last.observable !== dependency)last.push(dependency);
   }
   function recordExecution(func, context, result, observable){
     if(observable.recording)return observable.value;
+    result.observable = observable;
     observable.recording = true;
     stack.push(result);
+    console.log("Begin " + observable.value);
     try{
       return func.apply(context);
     }finally{
       stack.pop();
       observable.recording = false;
+      if(!observable._subs)observable._subs = [];
+      for(var j in observable._subs){
+        observable._subs[j].dispose();
+      }
+      for(var i = 0; i < result.length; i++){
+        observable._subs.push(result[i].subscribe(function(){
+          console.log("found!!!!!!!!! ");
+          console.log(result[0]);
+          console.log(observable.read());
+          global.x = (global.x || 0 ) + 1;
+          if(!(global.x > 10))observable.peek();
+        }));
+      }
+      console.log("Fin " + observable.value);
     }
   }
 
@@ -145,7 +163,7 @@
 
     self.valueWillMutate = function(){
       self.notifySubscribers(self.value, "beforeChange");
-    }
+    };
 
     self.setter = function(value){
       if(typeof self.write !== "function")throw "This observable can't be set.";
@@ -154,12 +172,12 @@
       if(self.notify === 'always' || !compare || !compare(value, self.value)){
         try{
           self.valueWillMutate();
-          self.write(value);
+          self.write.call(self.getContext(),value);
         }finally{
           self.valueHasMutated();
         }
       }
-    }
+    };
 
     self.equalityComparer = function(newvalue, oldvalue){
       var isObject = Object.prototype.toString.call(newvalue) === "[object Object]";
@@ -167,27 +185,57 @@
     };
 
     self.getter = function(){
-      var context = self.owner === true ? this : self.owner
-      if(self.cached)return self.value;
       recordDependency(self);
+      return self.peek();
+    };
+
+    self.peek = function(){
+      //if(self.cached)return self.value;
       var dependencies = self.dependencies = [];
       self.cached = true;
-      return self.value = recordExecution(self.read, context, dependencies, self);
-    }
+      self.value = recordExecution(self.read, self.getContext(), dependencies, self);
+      return self.value;
+    };
+
+    self.getContext = function(){
+      return self.owner === undefined ? global : self.owner;
+    };
 
     self.hockNotify = function(isDefaultEvent){
-      var d = self.dependencies;
-      if(isDefaultEvent)for(var i in d)d[i].cached = false;
-    }
+      //var d = self.dependencies;
+      //if(isDefaultEvent)for(var i in d)d[i].cached = false;
+    };
 
     /**
      * Inheritance
      */
 
     this.copyProperties(self);
-    this.accessor = self;
+    self.original = this;
+    return self;
   }
 
+  function DependentObservable(options, owner){
+
+    if(!options || typeof (options.read || options) !== "function"){
+      throw "Function has to be passed."
+    }
+
+    if (!(this instanceof DependentObservable)){
+      return new DependentObservable(options, owner);
+    }
+
+    var self = Observable.call(this);
+
+    if(options.read){
+      self.extend(options);
+    }else{
+      self.read = options;
+      self.owner = owner;
+    }
+
+    return self;
+  }
 
   /**
    * Utility function that is used to build type checking functions. The resulting 
@@ -197,11 +245,11 @@
    * @param  {Constructor} type to be checked against
    * @return {Function}      
    */
-  function buildCheckType(type, typename, check){
+  function buildCheckType(type, check){
     return function(any){
-      if(typename && (!any || any["_type"] !== typename))any = null;
-      if(check && (!any || !check(any)))any = null;
-      return !!any && ( any instanceof type || any._clonedFrom instanceof type );
+      return !!any 
+          && ( any instanceof type || any._clonedFrom instanceof type ) 
+          && (!check || check(any));
     };
   }
 
@@ -213,14 +261,17 @@
     subscribable: Subscribable,
     isSubscribable: buildCheckType(Subscribable),
     observable: function(initial){
-      var self = new Observable().accessor;
+      var self = new Observable();
       self.value = initial;
       self.read  = function(){return self.value;};
       self.write = function(param){self.value = param;};
       return self;
     },
+    dependentObservable: DependentObservable,
+    computed: DependentObservable,
+    isComputed: buildCheckType(DependentObservable),
     isObservable: buildCheckType(Observable),
-    isWriteableObservable: buildCheckType(Observable, null, function(self){return !!self.write;})
+    isWriteableObservable: buildCheckType(Observable, function(self){return !!self.write;})
   };
 
 
@@ -229,6 +280,7 @@
    */
   Subscribable.fn = Subscribable.prototype = {};
   global.ko.observable.fn = Observable.prototype = new Subscribable();
+  DependentObservable.prototype = new Observable().original; 
 
 })(window);
 

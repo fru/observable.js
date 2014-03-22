@@ -132,7 +132,6 @@ describe('Dependent Observable', function() {
         var observable = new ko.observable(1);
         var depedentObservable = new ko.dependentObservable(function () { return observable() + 1; });
         assert(depedentObservable()).toEqual(2);
-
         observable(50);
         assert(depedentObservable()).toEqual(51);
     });
