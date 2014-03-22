@@ -282,6 +282,36 @@ describe('Observable', function() {
             assert(instance.customProp).toEqual('subscribable value');
             assert(instance.customFunc()).toEqual(123);
         });
+
+        /*
+          __proto__ never supported
+        
+         it('Should have access to functions added to "fn" on existing instances on supported browsers', function () {
+            // On unsupported browsers, there's nothing to test
+            if (!jasmine.browserSupportsProtoAssignment) {
+                return;
+            }
+
+            this.after(function() {
+                delete ko.subscribable.fn.customFunction1;
+                delete ko.observable.fn.customFunction2;
+            });
+
+            var observable = ko.observable();
+
+            var customFunction1 = function () {};
+            var customFunction2 = function () {};
+
+            ko.subscribable.fn.customFunction1 = customFunction1;
+            ko.observable.fn.customFunction2 = customFunction2;
+
+            expect(observable.customFunction1).toBe(customFunction1);
+            expect(observable.customFunction2).toBe(customFunction2);
+        });
+
+        */
+
+
     });
 });
 

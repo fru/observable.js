@@ -269,7 +269,10 @@ describe('Dependent Observable', function() {
         assert(dependent.isActive()).toEqual(false);
     });
 
-    it('Should delay disposal until after disposeWhen returns false if it is waiting for a DOM node to be removed', function() {
+    /*
+        NO DOM Support
+
+     it('Should delay disposal until after disposeWhen returns false if it is waiting for a DOM node to be removed', function() {
         var underlyingObservable = ko.observable(100),
             shouldDispose = true,
             dependent = ko.dependentObservable(
@@ -295,7 +298,7 @@ describe('Dependent Observable', function() {
         underlyingObservable(102);
         assert(underlyingObservable.getSubscriptionsCount()).toEqual(0);
         assert(dependent.isActive()).toEqual(false);
-    });
+    });*/
 
     it('Should describe itself as active if the evaluator has dependencies on its first run', function() {
         var someObservable = ko.observable('initial'),

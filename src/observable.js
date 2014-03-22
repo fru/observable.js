@@ -198,6 +198,7 @@
         diposeAllDepencies(self);
       }
       if(self.disposed)return;
+      //end todo
 
       var value = recordExecution(self.read, self.getContext(), self);
       self.setter(value);
