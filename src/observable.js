@@ -37,9 +37,6 @@
      */
     this.notifySubscribers = function(value, event){
       event = event || defaultEvent;
-      if(this.hockNotify){
-        this.hockNotify(event === defaultEvent, value, event);
-      }
       var dependencies = this.getDependencies()[event] || [];
       try{
         if(this.getter)value = this.getter();
@@ -113,15 +110,14 @@
   function recordDependency(dependency){
     var length = stack.length;
     var last = length > 0 ? stack[length-1] : [];
-    if(last && last.observable)console.log(">"+last.observable.value);
     if(last.observable !== dependency)last.push(dependency);
   }
-  function recordExecution(func, context, result, observable){
+  function recordExecution(func, context, observable){
     if(observable.recording)return observable.value;
+    var result = [];
     result.observable = observable;
     observable.recording = true;
     stack.push(result);
-    console.log("Begin " + observable.value);
     try{
       return func.apply(context);
     }finally{
@@ -133,14 +129,9 @@
       }
       for(var i = 0; i < result.length; i++){
         observable._subs.push(result[i].subscribe(function(){
-          console.log("found!!!!!!!!! ");
-          console.log(result[0]);
-          console.log(observable.read());
-          global.x = (global.x || 0 ) + 1;
-          if(!(global.x > 10))observable.peek();
+          observable.peek();
         }));
       }
-      console.log("Fin " + observable.value);
     }
   }
 
@@ -185,25 +176,19 @@
     };
 
     self.getter = function(){
+      if(self.cached)return self.value;
       recordDependency(self);
       return self.peek();
     };
 
     self.peek = function(){
-      //if(self.cached)return self.value;
-      var dependencies = self.dependencies = [];
       self.cached = true;
-      self.value = recordExecution(self.read, self.getContext(), dependencies, self);
+      self.value = recordExecution(self.read, self.getContext(), self);
       return self.value;
     };
 
     self.getContext = function(){
       return self.owner === undefined ? global : self.owner;
-    };
-
-    self.hockNotify = function(isDefaultEvent){
-      //var d = self.dependencies;
-      //if(isDefaultEvent)for(var i in d)d[i].cached = false;
     };
 
     /**
