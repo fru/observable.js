@@ -19,8 +19,10 @@
      * containg the subscribers registerd for that event.
      * @type {Object}
      */
-    this.getDependencies = function(){
-      return this._dependencies || (this._dependencies = {});
+    this.s = function(event){
+      var result = this._s || (this._s = {});
+      if(event)result = result[event] || (result[event] = []);
+      return result;
     }
 
     /**
@@ -38,18 +40,18 @@
      */
     this.notifySubscribers = function(value, event){
       event = event || defaultEvent;
-      var dependencies = this.getDependencies()[event] || [];
+      var dependencies = this.s(event);  // s = subscribers
       try{
         if(this.getter)value = this.getter();
       }finally{
         var length = dependencies.length;
         for(var i = 0; i < length; i++){
-          if(!dependencies[i].disposed){
+          if(!dependencies[i]._d){  // _d = diposed
             dependencies[i].cb.call(dependencies[i].context, value);
           }
         }
         for(i = 0; i < length; i++){
-          if(dependencies[i].disposed){
+          if(dependencies[i]._d){ // _d = diposed
             dependencies.splice(i, 1);
             i--; length--;
           } 
@@ -70,8 +72,8 @@
       event = event || defaultEvent;
       if(typeof cb !== "function")throw new Error("First parameter musst be a function.");
       var dependency = {cb: cb, context: context};
-      (this.getDependencies()[event] || (this.getDependencies()[event] = [])).push(dependency);
-      function dispose(){ dependency.disposed = true; };
+      this.s(event).push(dependency); // s = subscribers
+      function dispose(){ dependency._d = true; }; // _d = diposed
       return { dispose: dispose };
     };
 
@@ -103,10 +105,10 @@
      * @return {Integer} Nr. of subscriptions on this object
      */
     this.getSubscriptionsCount = function(){
-      var count = 0, dependencies = this.getDependencies();
+      var count = 0, dependencies = this.s(); // s = subscribers
       for(var i in dependencies){
         for(var j in dependencies[i]){
-          if(!dependencies[i][j].disposed)count++;
+          if(!dependencies[i][j]._d)count++; // _d = diposed
         }
       }
       return count;
@@ -139,7 +141,7 @@
       stack.pop();
       observable.recording = false;
       diposeAllDepencies(observable);
-      if(!observable.disposed){
+      if(!observable._d){ // _d = diposed
         for(var i = 0; i < result.length; i++){
           observable._subs.push(result[i].subscribe(function(){
             observable.peek();
@@ -218,7 +220,7 @@
     self.peek = function(){
       self.deferEvaluation = false;
       if(self.disposeWhen && self.disposeWhen())self.dispose();
-      if(self.disposed)return;
+      if(self._d)return; // _d = diposed
 
       var value = recordExecution(self.read, self.getContext(), self);
       self.setter(value, false, []);
@@ -238,7 +240,7 @@
     }
 
     self.dispose = function(){
-      self.disposed = true;
+      self._d = true; // _d = diposed
       diposeAllDepencies(self);
     }
 
