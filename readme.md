@@ -18,7 +18,7 @@ knockout("Observable.js");
 // Prints "Observable.js rocks!"
 ```
 
-I developed this to embed observables into my own integration testing framework - surely you can imagine other places where some observables might be usefull :-)
+I developed this to embed observables into my own integration testing framework - surely you can imagine other places where some observables might be useful :-)
 
 
 
