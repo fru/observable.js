@@ -21,6 +21,15 @@
     },
     toBe: function (actual, expected, message) {
       pavlov.adapter.assert(actual === expected, message);
+    },
+    toThrow: function (actual, expectedErrorDescription, message) {
+      // can optionally accept expected error message
+      try {
+        actual();
+        adapter.assert(false, message);
+      } catch (e) {
+        pavlov.adapter.assert(e.message === (expectedErrorDescription || e.mesage), message);
+      }
     }
   });
 </script>

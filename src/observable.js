@@ -65,6 +65,7 @@
      * @param  {String}   event   - when no specified the default is used
      */
     this.subscribe = function(cb, context, event){
+      if(this.deferEvaluation && this.peek)this.peek();
       event = event || defaultEvent;
       if(typeof cb !== "function")throw "First parameter musst be a function.";
       var dependency = {cb: cb, context: context};
@@ -114,7 +115,10 @@
   function recordDependency(dependency){
     var length = stack.length;
     var last = length > 0 ? stack[length-1] : [];
-    if(last.observable !== dependency)last.push(dependency);
+    if(last.observable !== dependency){
+      for(var i in last)if(last[i] === dependency)return;
+      last.push(dependency);
+    }
   }
   function recordExecution(func, context, observable){
     if(observable.recording || !func)return observable.value;
@@ -133,6 +137,14 @@
           observable.peek();
         }));
       }
+    }
+  }
+  function pauseRecording(func, context){
+    stack.push([]);
+    try{
+      func.call(context);
+    }finally{
+      stack.pop();
     }
   }
   function dependencyCount(observable){
@@ -171,12 +183,14 @@
       var compare = self.equalityComparer;
       if(self.notify === 'always' || !compare || !compare(value, self.value)){
         try{
-          self.valueWillMutate();
+          pauseRecording(self.valueWillMutate,self);
           if(write && !self.write)throw "This observable can't be set.";
           self.value = value;
-          if(write)self.write.apply(self.getContext(), args || value); 
+          if(write){
+            self.write.apply(self.getContext(), args || value); 
+          }
         }finally{
-          self.valueHasMutated();
+          pauseRecording(self.valueHasMutated,self);
         }
       }
     };
@@ -188,10 +202,12 @@
 
     self.getter = function(){
       recordDependency(self);
+      if(self.deferEvaluation)self.peek();
       return self.value;
     };
 
     self.peek = function(){
+      self.deferEvaluation = false;
       //TODO is this also needed at start of getter?
       if(self.disposeWhen && self.disposeWhen()){
         self.disposed = true;
@@ -227,9 +243,8 @@
   }
 
   function DependentObservable(evaluator, owner, options){
-
     if (!(this instanceof DependentObservable)){
-      return new DependentObservable(evaluator, options, owner);
+      return new DependentObservable(evaluator, owner, options);
     }
 
     if(typeof evaluator !== "function"){
