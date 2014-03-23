@@ -46,12 +46,12 @@
       }finally{
         var length = dependencies.length;
         for(var i = 0; i < length; i++){
-          if(!dependencies[i]._d){  // _d = diposed
+          if(!dependencies[i]._p){ // _p = dependency diposed
             dependencies[i].cb.call(dependencies[i].context, value);
           }
         }
         for(i = 0; i < length; i++){
-          if(dependencies[i]._d){ // _d = diposed
+          if(dependencies[i]._p){ // _p = dependency diposed
             dependencies.splice(i, 1);
             i--; length--;
           } 
@@ -73,7 +73,7 @@
       if(typeof cb !== "function")throw new Error("First parameter musst be a function.");
       var dependency = {cb: cb, context: context};
       this.subscribers(event).push(dependency);
-      function dispose(){ dependency._d = true; }; // _d = diposed
+      function dispose(){ dependency._p = true; }; // _p = dependency diposed
       return { dispose: dispose };
     };
 
@@ -108,7 +108,7 @@
       var count = 0, dependencies = this.subscribers();
       for(var i in dependencies){
         for(var j in dependencies[i]){
-          if(!dependencies[i][j]._d)count++; // _d = diposed
+          if(!dependencies[i][j]._p)count++; // _p = dependency diposed
         }
       }
       return count;
