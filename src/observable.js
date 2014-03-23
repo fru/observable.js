@@ -105,7 +105,11 @@
     this.getSubscriptionsCount = function(event){
       var count = 0, dependencies = this.getDependencies();
       if(event)return (dependencies[event]||[]).length;
-      for(var i in dependencies)count += dependencies[i].length;
+      for(var i in dependencies){
+        for(var j in dependencies[i]){
+          if(!dependencies[i][j].disposed)count++;
+        }
+      }
       return count;
     }
   }
@@ -132,10 +136,12 @@
       stack.pop();
       observable.recording = false;
       diposeAllDepencies(observable);
-      for(var i = 0; i < result.length; i++){
-        observable._subs.push(result[i].subscribe(function(){
-          observable.peek();
-        }));
+      if(!observable.disposed){
+        for(var i = 0; i < result.length; i++){
+          observable._subs.push(result[i].subscribe(function(){
+            observable.peek();
+          }));
+        }
       }
     }
   }
@@ -208,13 +214,8 @@
 
     self.peek = function(){
       self.deferEvaluation = false;
-      //TODO is this also needed at start of getter?
-      if(self.disposeWhen && self.disposeWhen()){
-        self.disposed = true;
-        diposeAllDepencies(self);
-      }
+      if(self.disposeWhen && self.disposeWhen())self.dispose();
       if(self.disposed)return;
-      //end todo
 
       var value = recordExecution(self.read, self.getContext(), self);
       self.setter(value);
@@ -231,6 +232,11 @@
 
     self.isActive = function(){
       return self.getDependenciesCount() > 0;
+    }
+
+    self.dispose = function(){
+      self.disposed = true;
+      diposeAllDepencies(self);
     }
 
     /**
