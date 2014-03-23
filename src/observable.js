@@ -201,7 +201,7 @@
           if(write && !self.write)throw "This observable can't be set.";
           self.value = value;
           if(write){
-            self.write.apply(self.getContext(), args || value); 
+            self.write.apply(self.getContext(), args); 
           }
         }finally{
           pauseRecording(self.valueHasMutated,self);
@@ -226,7 +226,7 @@
       if(self.disposed)return;
 
       var value = recordExecution(self.read, self.getContext(), self);
-      self.setter(value);
+      self.setter(value, false, []);
       return value;
     };
 

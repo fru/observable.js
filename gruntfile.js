@@ -1,14 +1,16 @@
 module.exports = function(grunt) {
 
   grunt.initConfig({
-    'qunit-cov':{
-      test:{
-        minimum: 0.99,
-        srcDir: 'src',
-        depDirs: ['test'],
-        outDir: 'output',
-        testFiles: ['test/*.html']
-      }
+	qunit: {
+      options: {
+        '--web-security': 'no',
+        coverage: {
+          src: ['src/**/*.js'],
+          instrumentedFiles: 'temp/',
+          lcovReport: 'report',
+        }
+      },
+      all: ['test/*.html']
     },
     coveralls: {
       all: {
@@ -17,8 +19,8 @@ module.exports = function(grunt) {
     },
   });
   
-  grunt.loadNpmTasks('grunt-qunit-cov');
+  grunt.loadNpmTasks('grunt-qunit-istanbul');
   grunt.loadNpmTasks('grunt-coveralls');
 
-  grunt.registerTask('build', ['qunit-cov']); //'coveralls'
+  grunt.registerTask('build', ['qunit','coveralls']); //'coveralls'
 };
