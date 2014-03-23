@@ -11,7 +11,7 @@
     /**
      * Subscribable can only be called as a constructor.
      */
-    if (!this instanceof Subscribable)return new Subscribable();
+    if (!(this instanceof Subscribable))return new Subscribable();
 
     /**
      * This gets the subscribers that were registered with this object. 
@@ -100,12 +100,10 @@
 
     /**
      * Returns the number of subscriptions for the specific event name.
-     * @param {String} event - if falsy; all subscriptions are counted
      * @return {Integer} Nr. of subscriptions on this object
      */
-    this.getSubscriptionsCount = function(event){
+    this.getSubscriptionsCount = function(){
       var count = 0, dependencies = this.getDependencies();
-      if(event)return (dependencies[event]||[]).length;
       for(var i in dependencies){
         for(var j in dependencies[i]){
           if(!dependencies[i][j].disposed)count++;
@@ -120,15 +118,12 @@
   function recordDependency(dependency){
     var length = stack.length;
     var last = length > 0 ? stack[length-1] : [];
-    if(last.observable !== dependency){
-      for(var i in last)if(last[i] === dependency)return;
-      last.push(dependency);
-    }
+    for(var i in last)if(last[i] === dependency)return;
+    last.push(dependency);
   }
   function recordExecution(func, context, observable){
     if(observable.recording || !func)return observable.value;
     var result = [];
-    result.observable = observable;
     observable.recording = true;
     stack.push(result);
     var previous = ko.computedContext;

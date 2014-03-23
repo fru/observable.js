@@ -39,9 +39,16 @@
 
 <!-- Sources -->
 <script src="../src/observable.js"></script>
+<!-- Added twice this should still work -->
+<script src="../src/observable.js"></script>
+<!-- Simulated node enviroinment -->
+<script>
+  window.exports = {};
+</script> 
+<script src="../src/observable.js"></script>
 
  <!-- Test-->
-<script src="simple/tests.js"></script>
+<script src="observable/test.js"></script>
 <script src="knockout/dependentObservableBehaviors.js"></script>
 <script src="knockout/subscribableBehaviors.js"></script>
 <script src="knockout/observableBehaviors.js"></script>
