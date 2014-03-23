@@ -19,7 +19,7 @@
      * containg the subscribers registerd for that event.
      * @type {Object}
      */
-    this.s = function(event){
+    this.subscribers = function(event){
       var result = this._s || (this._s = {});
       if(event)result = result[event] || (result[event] = []);
       return result;
@@ -40,7 +40,7 @@
      */
     this.notifySubscribers = function(value, event){
       event = event || defaultEvent;
-      var dependencies = this.s(event);  // s = subscribers
+      var dependencies = this.subscribers(event);
       try{
         if(this.getter)value = this.getter();
       }finally{
@@ -72,7 +72,7 @@
       event = event || defaultEvent;
       if(typeof cb !== "function")throw new Error("First parameter musst be a function.");
       var dependency = {cb: cb, context: context};
-      this.s(event).push(dependency); // s = subscribers
+      this.subscribers(event).push(dependency);
       function dispose(){ dependency._d = true; }; // _d = diposed
       return { dispose: dispose };
     };
@@ -105,7 +105,7 @@
      * @return {Integer} Nr. of subscriptions on this object
      */
     this.getSubscriptionsCount = function(){
-      var count = 0, dependencies = this.s(); // s = subscribers
+      var count = 0, dependencies = this.subscribers();
       for(var i in dependencies){
         for(var j in dependencies[i]){
           if(!dependencies[i][j]._d)count++; // _d = diposed
