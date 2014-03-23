@@ -68,7 +68,7 @@
     this.subscribe = function(cb, context, event){
       if(this.deferEvaluation && this.peek)this.peek();
       event = event || defaultEvent;
-      if(typeof cb !== "function")throw "First parameter musst be a function.";
+      if(typeof cb !== "function")throw new Error("First parameter musst be a function.");
       var dependency = {cb: cb, context: context};
       (this.getDependencies()[event] || (this.getDependencies()[event] = [])).push(dependency);
       function dispose(){ dependency.disposed = true; };
@@ -193,7 +193,7 @@
       if(self.notify === 'always' || !compare || !compare(value, self.value)){
         try{
           pauseRecording(self.valueWillMutate,self);
-          if(write && !self.write)throw "This observable can't be set.";
+          if(write && !self.write)throw new Error("This observable can't be set.");
           self.value = value;
           if(write){
             self.write.apply(self.getContext(), args); 
@@ -259,7 +259,7 @@
     if(typeof evaluator !== "function"){
       options = evaluator || {};
       evaluator = options.read;
-      if(typeof evaluator !== "function")throw "Function has to be passed.";
+      if(typeof evaluator !== "function")throw new Error("Function has to be passed.");
     }
 
     var self = Observable.call(this);

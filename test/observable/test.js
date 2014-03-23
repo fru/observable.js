@@ -6,7 +6,7 @@ test( "Subscription without callback", function() {
 	try{
 		target.subscribe();
 	}catch(e){
-		equal( e.message, "" , "Exception caught" );
+		equal( e.message, "First parameter musst be a function." , "Exception caught" );
 	}
 	
 });
