@@ -30,6 +30,9 @@
       } catch (e) {
         pavlov.adapter.assert(e.message === (expectedErrorDescription || e.mesage), message);
       }
+    },
+    toBeUndefined: function (actual, message) {
+      pavlov.adapter.assert(actual === undefined, message);
     }
   });
 </script>

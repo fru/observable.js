@@ -1,6 +1,7 @@
 
-(function(global){
+(function(ko, global){
 
+  if(!ko)return;
   /**
    * Subscribable Objects implement the publish-subscribe pattern.
    * @constructor 
@@ -130,9 +131,16 @@
     result.observable = observable;
     observable.recording = true;
     stack.push(result);
+    var previous = ko.computedContext;
+    ko.computedContext = {
+      isInitial: function(){return !observable.initialised;},
+      getDependenciesCount: function(){return result.length;}
+    }
     try{
       return func.apply(context);
     }finally{
+      observable.initialised = true;
+      ko.computedContext = previous;
       stack.pop();
       observable.recording = false;
       diposeAllDepencies(observable);
@@ -288,35 +296,31 @@
   }
 
   /**
-   * Do nothing when knockout already exists!
+   * Set Results
    */
-  if(!global.ko){
+  ko.subscribable = Subscribable;
+  ko.isSubscribable = buildCheckType(Subscribable);
+  ko.observable = function(initial){
+    var self = new Observable();
+    self.value = initial;
+    self.write = function(){};
+    return self;
+  };
+  ko.computedContext = {
+    isInitial: function(){return undefined;},
+    getDependenciesCount: function(){return undefined;}
+  };
+  ko.dependentObservable = DependentObservable;
+  ko.computed = DependentObservable;
+  ko.isComputed = buildCheckType(DependentObservable);
+  ko.isObservable = buildCheckType(Observable);
+  ko.isWriteableObservable = buildCheckType(Observable, function(self){return !!self.write;});
 
-    /**
-     * Return a result object 
-     */
-    global.ko = {
-      subscribable: Subscribable,
-      isSubscribable: buildCheckType(Subscribable),
-      observable: function(initial){
-        var self = new Observable();
-        self.value = initial;
-        self.write = function(){};
-        return self;
-      },
-      dependentObservable: DependentObservable,
-      computed: DependentObservable,
-      isComputed: buildCheckType(DependentObservable),
-      isObservable: buildCheckType(Observable),
-      isWriteableObservable: buildCheckType(Observable, function(self){return !!self.write;})
-    };
+  /**
+   * Prototype hirarchy
+   */
+  Subscribable.fn = Subscribable.prototype = {};
+  ko.observable.fn = Observable.prototype = new Subscribable();
+  DependentObservable.fn = DependentObservable.prototype = new Observable().original; 
 
-    /**
-     * Prototype hirarchy
-     */
-    Subscribable.fn = Subscribable.prototype = {};
-    global.ko.observable.fn = Observable.prototype = new Subscribable();
-    DependentObservable.fn = DependentObservable.prototype = new Observable().original; 
-  }
-
-})(window);
+})(typeof exports !== 'undefined' ? exports : (window.ko?null:(window.ko={})), typeof exports !== 'undefined' ? exports : window);
