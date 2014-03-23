@@ -1,7 +1,7 @@
 module.exports = function(grunt) {
 
   grunt.initConfig({
-	qunit: {
+    qunit: {
       options: {
         '--web-security': 'no',
         coverage: {
@@ -16,7 +16,7 @@ module.exports = function(grunt) {
       all: {
         src: 'report/*.info'
       },
-    },
+    }
   });
   
   grunt.loadNpmTasks('grunt-qunit-istanbul');
