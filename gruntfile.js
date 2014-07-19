@@ -16,11 +16,33 @@ module.exports = function(grunt) {
       all: {
         src: 'report/*.info'
       },
+    },
+    closureCompiler: {
+      options: {
+        compilerFile: require('closure-compiler').JAR_PATH,
+        compilation_level: 'SIMPLE_OPTIMIZATIONS'
+      },
+      all: {
+        src: 'src/observable.js',
+        dest: 'observable.min.js'
+      }
+    },
+    docco: {
+      all: {
+        src: ['src/**/*.js'],
+        options: {
+          output: 'report/src-docco/'
+        }
+      }
     }
   });
   
-  grunt.loadNpmTasks('grunt-qunit-istanbul');
+  grunt.loadNpmTasks('grunt-qunit-examples');
   grunt.loadNpmTasks('grunt-coveralls');
+  grunt.loadNpmTasks('grunt-closure-tools');
+  grunt.loadNpmTasks('grunt-docco');
 
-  grunt.registerTask('build', ['qunit','coveralls']); //'coveralls'
+  grunt.registerTask('default', ['closureCompiler', 'docco']);
+  grunt.registerTask('all', ['qunit', 'closureCompiler', 'docco', 'coveralls']);
+  grunt.registerTask('test', ['qunit']);
 };

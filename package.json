@@ -1,13 +1,39 @@
 {
-  "name": "observable.js",
+  "name": "ko-observable",
+  "description": "Knockout like observables in a tiny library.",
   "version": "0.1.0",
+  "homepage": "https://github.com/fru/observable.js",
+  "author": {
+    "name": "Florian Rueberg",
+    "url": "https://github.com/fru"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/fru/observable.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fru/observable.js/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/fru/observable.js/blob/master/license.md"
+    }
+  ],
+  "engines": {
+    "node": ">= 0.8.0"
+  },
+  "scripts": {
+    "test": "grunt test",
+    "init": "grunt"
+  },
   "devDependencies": {
     "grunt": "~0.4.4",
-    "grunt-coveralls": "~0.3.0",
-    "grunt-croc-qunit": "~0.3.0",
-    "phantomjs": "~1.9.7-1",
-    "jscoverage": "~0.3.8",
-    "grunt-qunit-cov": "~0.3.6"
+    "grunt-qunit-examples": "^0.4.10",
+    "grunt-coveralls": "^0.3.0",
+    "closure-compiler": "^0.2.6",
+    "grunt-closure-tools": "^0.9.7",
+    "grunt-docco": "^0.3.3"
   },
   "dependencies": {}
 }

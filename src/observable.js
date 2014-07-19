@@ -32,6 +32,8 @@
 
 (function(ko, global){
 
+    'use strict';
+
     if(!ko)return;
 
     // Helper function for type checking
