@@ -5,10 +5,8 @@ https://coveralls.io/r/fru/observable.js?branch=master)
 https://coveralls.io/r/fru/observable.js?branch=master)
 [![Dependencies](https://img.shields.io/badge/dependencies-none-brightgreen.png)](
 https://coveralls.io/r/fru/observable.js?branch=master)
-observable.js
-=============
 
-Observable.js is a tiny library (gzipped less then 1.4KB) that makes knockout's gorgeous observables available, without the bloat of the whole knockout.js framework. 
+**Observable.js** is a tiny library (gzipped less then 1.4KB) that makes knockout's gorgeous observables available, without the bloat of the whole knockout.js framework. 
 
 It supports `ko.observable`, `ko.subscribable` and `ko.computed`. Designed for maximum compatibility these run successfully against knockout's own unit test specification.
 
