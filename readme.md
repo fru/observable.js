@@ -31,5 +31,5 @@ This also works great on node. Just install it with `npm install ko-observable` 
 var ko = require('ko-observable');
 ```
 
-I developed this to embed observables into my own integration testing framework - surely you can imagine other places where some observables might be useful :-)
+I developed this to embed observables into my own integration testing framework - surely you can imagine other places where some observables might be useful :wink:
 
