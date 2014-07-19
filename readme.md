@@ -2,13 +2,10 @@ observable.js
 =============
 
 [![Coverage Status](https://img.shields.io/badge/coverage-100%-brightgreen.png)](https://coveralls.io/r/fru/observable.js?branch=master)
-
 [![Size](https://img.shields.io/badge/gzipped-1.4kb-brightgreen.png)](
 https://coveralls.io/r/fru/observable.js?branch=master)
-
 [![License](https://img.shields.io/badge/license-MIT-blue.png)](
 https://coveralls.io/r/fru/observable.js?branch=master)
-
 [![Dependencies](https://img.shields.io/badge/dependencies-none-brightgreen.png)](
 https://coveralls.io/r/fru/observable.js?branch=master)
 
