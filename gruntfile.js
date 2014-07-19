@@ -1,5 +1,11 @@
 module.exports = function(grunt) {
 
+  grunt.registerTask('size', 'Display file sizes.', function() {
+    var max = grunt.file.read('src/observable.js');
+    var min = grunt.file.read('observable.min.js');
+    console.log(require('maxmin')(max, min, true));
+  });
+
   grunt.initConfig({
     qunit: {
       options: {
@@ -42,7 +48,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-closure-tools');
   grunt.loadNpmTasks('grunt-docco');
 
-  grunt.registerTask('default', ['closureCompiler', 'docco']);
-  grunt.registerTask('all', ['qunit', 'closureCompiler', 'docco', 'coveralls']);
+  grunt.registerTask('default', ['closureCompiler', 'size', 'docco']);
+  grunt.registerTask('all', ['test', 'default', 'coveralls']);
   grunt.registerTask('test', ['qunit']);
 };

@@ -33,7 +33,8 @@
     "grunt-coveralls": "^0.3.0",
     "closure-compiler": "^0.2.6",
     "grunt-closure-tools": "^0.9.7",
-    "grunt-docco": "^0.3.3"
+    "grunt-docco": "^0.3.3",
+    "maxmin": "^0.2.2"
   },
   "dependencies": {}
 }
