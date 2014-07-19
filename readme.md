@@ -21,7 +21,7 @@ knockout("Observable.js");
 // Prints "Observable.js rocks!"
 ```
 
-This is also great on node just `npm install ko-observable` and you can use it just like in the browser:
+This is also great on node.js just install it with `npm install ko-observable` and you can use it just like in the browser:
 
 ```javascript
 var ko = require('ko-observable');
