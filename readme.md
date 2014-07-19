@@ -1,7 +1,7 @@
 observable.js
 =============
 
-[![Coverage Status](https://coveralls.io/repos/fru/observable.js/badge.png?branch=master)](https://coveralls.io/r/fru/observable.js?branch=master)
+[![Coverage Status](https://img.shields.io/badge/coverage-100%-brightgreen.png)](https://coveralls.io/r/fru/observable.js?branch=master)
 
 [![Size](https://img.shields.io/badge/gzipped-1.4kb-brightgreen.png)](
 https://coveralls.io/r/fru/observable.js?branch=master)
