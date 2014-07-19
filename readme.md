@@ -5,7 +5,6 @@ https://coveralls.io/r/fru/observable.js?branch=master)
 https://coveralls.io/r/fru/observable.js?branch=master)
 [![Dependencies](https://img.shields.io/badge/dependencies-none-brightgreen.png)](
 https://coveralls.io/r/fru/observable.js?branch=master)
-
 observable.js
 =============
 
