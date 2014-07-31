@@ -7,6 +7,7 @@ https://coveralls.io/r/fru/observable.js?branch=master)
 https://coveralls.io/r/fru/observable.js?branch=master)
 
 **Observable.js** is a tiny library (gzipped less then 1.4KB) that makes knockout's gorgeous observables available, without the bloat of the whole knockout.js framework. 
+
 <br/>
 ### Works just like Knockout
 
